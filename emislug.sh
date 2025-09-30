@@ -14,20 +14,27 @@ wget -O "$WALLPAPER_PATH" "$IMAGE_URL"
 if [ $? -eq 0 ]; then
     echo "Image downloaded successfully to $WALLPAPER_PATH"
     
-    # Check the current color scheme
-    COLOR_SCHEME=$(gsettings get org.gnome.desktop.interface color-scheme)
-    
-    # Set the wallpaper based on color scheme
-    if [ "$COLOR_SCHEME" = "'prefer-dark'" ]; then
-        gsettings set org.gnome.desktop.background picture-uri-dark "file://$WALLPAPER_PATH"
+    # Check if running Hyprland
+    if [ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] || pgrep -x "Hyprland" > /dev/null; then
+        echo "Detected Hyprland, using swww..."
+        swww img "$WALLPAPER_PATH"
+        echo "Wallpaper changed to Emislug using swww!"
     else
-        gsettings set org.gnome.desktop.background picture-uri "file://$WALLPAPER_PATH"
+        # Check the current color scheme
+        COLOR_SCHEME=$(gsettings get org.gnome.desktop.interface color-scheme)
+        
+        # Set the wallpaper based on color scheme
+        if [ "$COLOR_SCHEME" = "'prefer-dark'" ]; then
+            gsettings set org.gnome.desktop.background picture-uri-dark "file://$WALLPAPER_PATH"
+        else
+            gsettings set org.gnome.desktop.background picture-uri "file://$WALLPAPER_PATH"
+        fi
+        
+        # Set the picture option to stretched
+        gsettings set org.gnome.desktop.background picture-options 'stretched'
+        
+        echo "Wallpaper changed to Emislug and set to stretched mode!"
     fi
-    
-    # Set the picture option to stretched
-    gsettings set org.gnome.desktop.background picture-options 'stretched'
-    
-    echo "Wallpaper changed to Emislug and set to stretched mode!"
 else
     echo "Failed to download the image. Please check your internet connection."
     exit 1

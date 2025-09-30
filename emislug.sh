@@ -32,3 +32,5 @@ else
     echo "Failed to download the image. Please check your internet connection."
     exit 1
 fi
+
+exit

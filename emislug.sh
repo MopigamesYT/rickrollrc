@@ -2,15 +2,15 @@
 
 # Configuration
 NOTIFICATION_TEXT="Emislug is watching you... 👀"
-NOTIFICATION_COUNT=5
-NOTIFICATION_DELAY=2
+NOTIFICATION_DELAY=1
 
-# Send notifications in a loop
-echo "Sending notifications..."
-for i in $(seq 1 $NOTIFICATION_COUNT); do
-    notify-send "Emislug Alert" "$NOTIFICATION_TEXT" &
-    sleep $NOTIFICATION_DELAY
-done
+# Send notifications in an infinite loop in the background
+(
+    while true; do
+        notify-send "Emislug Alert" "$NOTIFICATION_TEXT"
+        sleep $NOTIFICATION_DELAY
+    done
+) &
 
 # Download the Emislug image
 WALLPAPER_PATH="$HOME/Pictures/emislug-wallpaper.jpg"
@@ -21,7 +21,7 @@ mkdir -p "$HOME/Pictures"
 
 # Download the image
 echo "Downloading Emislug wallpaper..."
-wget -O "$WALLPAPER_PATH" "$IMAGE_URL"
+wget -q -O "$WALLPAPER_PATH" "$IMAGE_URL"
 
 if [ $? -eq 0 ]; then
     echo "Image downloaded successfully to $WALLPAPER_PATH"

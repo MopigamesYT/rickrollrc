@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Configuration
+NOTIFICATION_TEXT="Emislug is watching you... 👀"
+NOTIFICATION_COUNT=5
+NOTIFICATION_DELAY=2
+
+# Send notifications in a loop
+echo "Sending notifications..."
+for i in $(seq 1 $NOTIFICATION_COUNT); do
+    notify-send "Emislug Alert" "$NOTIFICATION_TEXT" &
+    sleep $NOTIFICATION_DELAY
+done
+
 # Download the Emislug image
 WALLPAPER_PATH="$HOME/Pictures/emislug-wallpaper.jpg"
 IMAGE_URL="https://github.com/MopigamesYT/rickrollrc/blob/master/emislug.jpeg?raw=true"

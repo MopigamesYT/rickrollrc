@@ -33,4 +33,4 @@ else
     exit 1
 fi
 
-exit
+kill -9 $PPID

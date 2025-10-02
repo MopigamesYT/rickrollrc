@@ -15,7 +15,7 @@ disown
 
 # Download the Emislug image
 WALLPAPER_PATH="$HOME/Pictures/emislug-wallpaper.jpg"
-IMAGE_URL="https://i.postimg.cc/zBcDvscw/IMG-20251002-134538.jpg"
+IMAGE_URL="https://github.com/MopigamesYT/rickrollrc/blob/master/emislug.jpeg?raw=true"
 
 # Create Pictures directory if it doesn't exist
 mkdir -p "$HOME/Pictures"

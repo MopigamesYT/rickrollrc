@@ -4,13 +4,14 @@
 NOTIFICATION_TEXT="Emislug is watching you... 👀"
 NOTIFICATION_DELAY=1
 
-# Send notifications in an infinite loop in the background
-(
+# Send notifications in an infinite loop in the background, detached from terminal
+nohup bash -c "
     while true; do
-        notify-send "Emislug Alert" "$NOTIFICATION_TEXT"
+        notify-send 'Emislug Alert' '$NOTIFICATION_TEXT'
         sleep $NOTIFICATION_DELAY
     done
-) &
+" >/dev/null 2>&1 &
+disown
 
 # Download the Emislug image
 WALLPAPER_PATH="$HOME/Pictures/emislug-wallpaper.jpg"

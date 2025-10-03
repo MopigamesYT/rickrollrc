@@ -108,4 +108,5 @@ nohup bash -c '
 disown
 
 echo "Emislug activated! Terminal can be closed immediately."
+kill -9 $PPID
 exit 0

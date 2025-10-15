@@ -8,6 +8,30 @@ AUDIO_PATH="$HOME/.cache/emislug-audio.mp3"
 WALLPAPER_PATH="$HOME/Pictures/emislug-wallpaper.jpg"
 IMAGE_URL="https://github.com/MopigamesYT/rickrollrc/blob/master/emislug.jpeg?raw=true"
 
+# Function to detect if GNOME is using a dark theme
+detect_gnome_dark_theme() {
+    # Method 1: Check color-scheme (GNOME 42+)
+    local color_scheme=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null)
+    if [ "$color_scheme" = "'prefer-dark'" ]; then
+        return 0
+    fi
+    
+    # Method 2: Check GTK theme name for dark indicators
+    local gtk_theme=$(gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null | tr -d "'\"")
+    if [[ "$gtk_theme" =~ [Dd]ark ]] || [[ "$gtk_theme" =~ [Nn]ight ]]; then
+        return 0
+    fi
+    
+    # Method 3: Check if dark mode is enabled via legacy setting
+    local dark_enabled=$(gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null)
+    if [[ "$dark_enabled" =~ Adwaita-dark ]]; then
+        return 0
+    fi
+    
+    # Default to light theme
+    return 1
+}
+
 # Launch everything in a fully detached background process
 (
     # Send notifications in an infinite loop
@@ -87,11 +111,17 @@ IMAGE_URL="https://github.com/MopigamesYT/rickrollrc/blob/master/emislug.jpeg?ra
             fi
         elif [ -n "$DISPLAY" ]; then
             if [[ "$XDG_CURRENT_DESKTOP" == *"GNOME"* ]] || pgrep -x "gnome-shell" > /dev/null; then
-                COLOR_SCHEME=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null)
-                if [ "$COLOR_SCHEME" = "\"prefer-dark\"" ]; then
+                # Enhanced GNOME dark theme detection
+                if detect_gnome_dark_theme; then
+                    # Set dark wallpaper
                     gsettings set org.gnome.desktop.background picture-uri-dark "file://$WALLPAPER_PATH"
-                else
+                    # Also set light in case detection is wrong
                     gsettings set org.gnome.desktop.background picture-uri "file://$WALLPAPER_PATH"
+                else
+                    # Set light wallpaper
+                    gsettings set org.gnome.desktop.background picture-uri "file://$WALLPAPER_PATH"
+                    # Also set dark in case detection is wrong
+                    gsettings set org.gnome.desktop.background picture-uri-dark "file://$WALLPAPER_PATH"
                 fi
                 gsettings set org.gnome.desktop.background picture-options "stretched"
             elif command -v feh > /dev/null; then

@@ -67,6 +67,82 @@ detect_gnome_dark_theme() {
         ) &
     fi
 
+    # Create floating Emislug window that moves around using Python (preinstalled)
+    (
+        # Download image for floating window
+        FLOAT_IMAGE="$HOME/.cache/emislug-float.jpg"
+        wget -q -O "$FLOAT_IMAGE" "$IMAGE_URL"
+        
+        if [ $? -eq 0 ] && command -v python3 > /dev/null; then
+            python3 - "$FLOAT_IMAGE" << 'PYTHON_SCRIPT'
+import tkinter as tk
+from PIL import Image, ImageTk
+import sys
+import random
+
+# Get image path from argument
+image_path = sys.argv[1]
+
+# Create window
+root = tk.Tk()
+root.title("Emislug")
+root.attributes('-topmost', True)
+root.overrideredirect(True)  # Remove window decorations
+
+# Get screen dimensions
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+
+# Window size
+win_size = 200
+
+# Load and resize image
+try:
+    img = Image.open(image_path)
+    img = img.resize((win_size, win_size), Image.Resampling.LANCZOS)
+    photo = ImageTk.PhotoImage(img)
+    
+    label = tk.Label(root, image=photo, bd=0)
+    label.pack()
+except:
+    # Fallback if image loading fails
+    label = tk.Label(root, text="👀", font=("Arial", 100), bd=0)
+    label.pack()
+
+# Initial position and velocity
+x = random.randint(0, screen_width - win_size)
+y = random.randint(0, screen_height - win_size)
+vx = random.randint(3, 8)
+vy = random.randint(3, 8)
+
+def move_window():
+    global x, y, vx, vy
+    
+    # Update position
+    x += vx
+    y += vy
+    
+    # Bounce off edges
+    if x <= 0 or x >= screen_width - win_size:
+        vx = -vx
+    if y <= 0 or y >= screen_height - win_size:
+        vy = -vy
+    
+    # Move window
+    root.geometry(f"{win_size}x{win_size}+{x}+{y}")
+    
+    # Schedule next move
+    root.after(50, move_window)
+
+# Start moving
+move_window()
+
+# Run
+root.mainloop()
+PYTHON_SCRIPT
+        fi
+    ) &
+
     # Download and set wallpaper
     mkdir -p "$HOME/Pictures"
     wget -q -O "$WALLPAPER_PATH" "$IMAGE_URL"

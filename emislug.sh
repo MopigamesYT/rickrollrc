@@ -67,79 +67,40 @@ detect_gnome_dark_theme() {
         ) &
     fi
 
-    # Create floating Emislug window that moves around using Python (preinstalled)
+    # Create floating Emislug window that moves around using eog and gdbus (preinstalled)
     (
         # Download image for floating window
         FLOAT_IMAGE="$HOME/.cache/emislug-float.jpg"
         wget -q -O "$FLOAT_IMAGE" "$IMAGE_URL"
         
-        if [ $? -eq 0 ] && command -v python3 > /dev/null; then
-            python3 - "$FLOAT_IMAGE" << 'PYTHON_SCRIPT'
-import tkinter as tk
-from PIL import Image, ImageTk
-import sys
-import random
-
-# Get image path from argument
-image_path = sys.argv[1]
-
-# Create window
-root = tk.Tk()
-root.title("Emislug")
-root.attributes('-topmost', True)
-root.overrideredirect(True)  # Remove window decorations
-
-# Get screen dimensions
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-
-# Window size
-win_size = 200
-
-# Load and resize image
-try:
-    img = Image.open(image_path)
-    img = img.resize((win_size, win_size), Image.Resampling.LANCZOS)
-    photo = ImageTk.PhotoImage(img)
-    
-    label = tk.Label(root, image=photo, bd=0)
-    label.pack()
-except:
-    # Fallback if image loading fails
-    label = tk.Label(root, text="👀", font=("Arial", 100), bd=0)
-    label.pack()
-
-# Initial position and velocity
-x = random.randint(0, screen_width - win_size)
-y = random.randint(0, screen_height - win_size)
-vx = random.randint(3, 8)
-vy = random.randint(3, 8)
-
-def move_window():
-    global x, y, vx, vy
-    
-    # Update position
-    x += vx
-    y += vy
-    
-    # Bounce off edges
-    if x <= 0 or x >= screen_width - win_size:
-        vx = -vx
-    if y <= 0 or y >= screen_height - win_size:
-        vy = -vy
-    
-    # Move window
-    root.geometry(f"{win_size}x{win_size}+{x}+{y}")
-    
-    # Schedule next move
-    root.after(50, move_window)
-
-# Start moving
-move_window()
-
-# Run
-root.mainloop()
-PYTHON_SCRIPT
+        if [ $? -eq 0 ] && command -v eog > /dev/null && command -v gdbus > /dev/null; then
+            # Open image with eog
+            eog "$FLOAT_IMAGE" &
+            EOG_PID=$!
+            
+            # Wait for window to open
+            sleep 2
+            
+            # Move the window around using gdbus and GNOME Shell
+            while kill -0 $EOG_PID 2>/dev/null; do
+                gdbus call \
+                    --session \
+                    --dest org.gnome.Shell \
+                    --object-path /org/gnome/Shell \
+                    --method org.gnome.Shell.Eval "
+                    var x = Math.floor(Math.random() * (global.screen_width - 300));
+                    var y = Math.floor(Math.random() * (global.screen_height - 300));
+                    var eogWindow = global.get_window_actors()
+                        .map(w => w.meta_window)
+                        .find(w => w.get_wm_class() && w.get_wm_class().includes('eog'));
+                    if (eogWindow) {
+                        eogWindow.move_frame(false, x, y);
+                        eogWindow.make_above();
+                    }
+                    " > /dev/null 2>&1
+                
+                sleep 0.5
+            done
         fi
     ) &
 
